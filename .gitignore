@@ -1,0 +1,26 @@
+# CMake / colcon output
+build/
+install/
+log/
+Testing/
+
+# Editor and tooling state
+.cache/
+.clangd/
+.idea/
+.vscode/
+compile_commands.json
+
+# Runtime artifacts
+*.log
+*.trace
+*.pcap
+*.pcapng
+*.mcap
+core
+core.*
+
+# Python analysis artifacts used by later stages
+__pycache__/
+*.py[cod]
+.venv/
