@@ -1,8 +1,18 @@
-# Chapter 5 — POSIX Shared Memory：共享页不等于自动同步
+# Chapter 5 — POSIX Shared Memory（共享内存）：共享不等于自动协调
 
 重要度：⭐⭐⭐
 
-## 1. 为什么 Shared Memory 更快
+> **初学者读法**：先读“0. 先记三件事”“2. 生动例子”和“6. 动手实验”。第 3.2～3.4 节的条件变量、内存顺序和所有权状态机属于第二遍内容。陌生词见[术语表](../00_glossary.md)。
+
+## 0. 这一章先记三件事
+
+1. 共享内存让两个进程看到同一个底层数据区域，因此大数据不必总在发送方、内核缓冲区和接收方之间反复搬运。
+2. “双方都能看见”不等于“双方可以随时修改”。仍要约定谁正在写、何时写完、谁读完后才能复用。
+3. 共享内存可能减少复制，但不会让 CPU、内存带宽、等待、缓存和崩溃清理成本消失。
+
+先用一句话区分：socket 像请快递搬箱子，共享内存像共用仓库；共用仓库省搬运，却需要更严格的货架管理规则。
+
+## 1. 为什么共享内存可能更快
 
 Socket/pipe 通常要把 payload 从 producer user buffer 移入内核管理的缓冲，再移到 consumer user buffer。Shared memory 让两个进程的虚拟地址分别映射到同一组物理页；producer 写入后 consumer 可直接读取共享页，避免大 payload 沿传统 stream/datagram 路径再次搬运。
 
@@ -33,7 +43,7 @@ mmap(..., MAP_SHARED, fd, 0)             mmap(..., MAP_SHARED, fd, 0)
 - `munmap/close` 释放当前进程引用；
 - `shm_unlink` 删除名字；已有 mappings 可继续存在，直到最后引用消失。
 
-### 3.2 Synchronization
+### 3.2 同步（Synchronization）
 
 共享物理页只解决“双方能访问”，不解决：
 
@@ -57,7 +67,7 @@ while (generation == last_seen && !shutdown) {
 
 **Semaphore 与本实验选择**：POSIX semaphore（具名 `sem_open`，或共享区内以 `pshared != 0` 初始化的 `sem_init`）维护可消费的计数，适合表达“有 N 个 slot/item”。Mutex 表达互斥 ownership，condition variable 表达“某个受 mutex 保护的 predicate 可能改变”。Semaphore 不是数据一致性的自动替代品：payload publication、slot generation、退出和 crash recovery 仍需协议。本实验用 mutex + condition，是因为要等待 `reader_ready`、`generation consumed` 和 `shutdown` 三个显式 predicate，而不只是一个计数。
 
-### 3.3 Memory ordering 与 cache coherence
+### 3.3 内存顺序（Memory ordering）与缓存一致性（Cache coherence）
 
 多核 CPU 各有 cache。硬件 coherence 使同一 cache line 的共享读写最终遵守一致性协议，但：
 
@@ -68,7 +78,7 @@ while (generation == last_seen && !shutdown) {
 - 大 payload 仍消耗 memory bandwidth 和 cache capacity；
 - NUMA 跨节点访问可能更贵。
 
-### 3.4 Ownership
+### 3.4 所有权（Ownership）
 
 真正的高吞吐 SHM 中间件通常使用 pool/ring/slot：
 
@@ -252,3 +262,7 @@ lsof -p "$(pidof shared_memory_writer)" | rg '/dev/shm'
 阅读 `man 3 shm_open`、`man 2 mmap`、`man 3 pthread_mutexattr_setpshared`、`man 3 pthread_condattr_setpshared`、`man 2 futex`、`man 2 flock`。随后在 Stage 07 对照 Fast DDS SHM 的 segment/port/buffer ownership。
 
 > Shared memory 共享的是 backing pages，不是自动同步和自动 ownership。它可减少大 payload 的 transport copy，但仍付出内存带宽、cache coherence、通知、调度、资源回收和崩溃恢复成本。
+
+第一遍可以把它说成：
+
+> 共享内存让两个进程使用同一个“仓库”，能少搬大箱子；但必须规定谁在用哪个货架、什么时候可以覆盖，以及有人中途退出后怎样收拾。

@@ -1,10 +1,20 @@
-# Chapter 2 — Pipe：由内核托管的字节流
+# Chapter 2 — Pipe（管道）：由内核托管的字节流
 
 重要度：⭐⭐
 
+> **初学者读法**：第一遍只读“0. 先记三件事”“2. 生动例子”和“6. 动手实验”。`PIPE_BUF`、`EINTR`、`FD_CLOEXEC` 属于第二遍细节，可先跳过并在[术语表](../00_glossary.md)查询。
+
+## 0. 这一章先记三件事
+
+1. Pipe 是 Linux 内核帮两个本机进程维护的一条“字节管道”。
+2. 它只看见连续字节，不知道一条业务消息从哪里开始、在哪里结束。
+3. 管道里已经没有数据，并且所有写入端都关闭后，读取方才会得到 EOF，也就是“以后不会再有数据”。
+
+一句话场景：父进程已经能创建子进程，现在想把一串数据按顺序交给它，pipe 是最简单的办法之一。
+
 ## 1. 为什么需要 Pipe
 
-父子进程常需要一条简单、单向、按顺序的本机数据通道。匿名 pipe 不需要文件系统地址；它依靠 `fork/exec` 继承 file descriptor，适合 shell pipeline、进程监督和子进程标准输入输出。
+父子进程常需要一条简单、单向、按顺序的本机数据通道。匿名 pipe 不需要名字或网络地址；父进程创建它后，子进程可以继承两端的文件描述符（file descriptor，简称 fd）。Shell 中的 `command_a | command_b` 就使用了同类思路。
 
 ## 2. 生动例子
 
@@ -26,7 +36,7 @@ Process B user buffer
 
 ## 3. 核心理论
 
-`pipe2()` 返回 read end 与 write end。核心语义：
+`pipe2()` 会返回读取端和写入端两个 fd。核心语义：
 
 - **stream**：没有 message boundary；
 - **ordered**：单个字节流按写入次序读取；
@@ -145,3 +155,7 @@ strace -ff -ttT \
 阅读 `man 2 pipe`、`man 7 pipe`、`man 2 read`、`man 2 write`、`man 2 fcntl`、`man 2 execve`。先用 strace 验证语义，再决定是否阅读 Linux `fs/pipe.c`。
 
 > Pipe 是有限容量、由内核托管、靠 fd lifecycle 表达对端生存状态的字节流。framing 和完整读写是应用协议责任。
+
+第一遍可以把它说成：
+
+> Pipe 是一根容量有限的字节管。发送方要负责写完整，接收方要自己分清消息；所有写入端都关掉后，接收方才能知道传输结束。

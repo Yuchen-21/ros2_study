@@ -2,9 +2,19 @@
 
 重要度：⭐⭐⭐
 
+> **初学者读法**：先读“0. 先记三件事”“2. 生动例子”，再分别跑一次 TCP 和 UDP 实验。第一遍不必理解 ACK、fragmentation、multicast 或 DDS 可靠性细节；可在[术语表](../00_glossary.md)随用随查。
+
+## 0. 这一章先记三件事
+
+1. **TCP 像连续水流**：可靠、有序，但不保留应用消息边界，接收方必须自己切分完整消息。
+2. **UDP 像一封封明信片**：每封边界清楚，但可能丢失、重复或乱序。
+3. “TCP 可靠”不表示永远更适合机器人，“UDP 简单”也不表示永远更快；还要看旧数据是否有用、能否容忍丢失和接收方是否跟得上。
+
+本章最重要的判断不是背协议特性，而是问：接收者变慢或网络丢包时，我更想等待旧数据补齐，还是尽快处理最新数据？
+
 ## 1. 为什么必须同时理解 TCP 和 UDP
 
-DDS/RTPS 的常见网络承载是 UDP，但“机器人实时通信偏向 UDP”不能简化为“UDP 快”。真正的理由涉及：
+ROS 2 常用的 DDS/RTPS 可以借助 UDP 传输数据，但“机器人实时通信偏向 UDP”不能简化为“UDP 快”。真正的理由涉及：
 
 - 是否允许丢弃旧样本；
 - 是否需要 multicast/discovery；
@@ -45,7 +55,7 @@ UDP 是 connectionless datagram：
 
 UDP “不可靠”不代表 DDS BEST_EFFORT 与 RELIABLE 都不可靠。DDS 可以在 UDP 上通过 RTPS HEARTBEAT/ACKNACK 与 sample history 实现选择性可靠行为。
 
-### 3.3 Buffer 与 blocking
+### 3.3 缓冲区（Buffer）与阻塞（Blocking）
 
 TCP/UDP 都有 send/receive socket buffer。`send` 成功通常只代表数据被本机 socket 层接受，不证明：
 
@@ -214,3 +224,7 @@ nstat -az | rg 'Udp|Tcp'
 阅读 `man 7 tcp`、`man 7 udp`、`man 7 socket`、`man 2 send`、`man 2 recv`。用 Wireshark 理解 TCP/UDP 后，再在 Stage 03 展开 RTPS submessages。
 
 > TCP 提供可靠有序字节流，UDP 提供独立尽力数据报；DDS 在 transport 之上加入发现、类型、history 和按 endpoint 配置的 QoS。机器人偏向 UDP 的条件是“允许按样本/端点管理 freshness 与可靠性”，不是“UDP 永远更快”。
+
+第一遍可以把它说成：
+
+> TCP 努力把全部字节按顺序交付，UDP 独立投递每封数据报。机器人应该根据“完整但可能变旧”和“保持最新但允许少量丢失”的需求做选择。

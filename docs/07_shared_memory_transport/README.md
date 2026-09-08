@@ -2,6 +2,8 @@
 
 重要度：⭐⭐　预计：10～14 小时　依赖：Stage 05、06
 
+> **白话预告**：同一台机器上的两个 ROS 2 进程怎样共用“仓库”，少搬几次相机图像或点云？本阶段还会验证数据是否真的走了共享内存。当前只有规划；术语见[术语表](../00_glossary.md)。
+
 ## 核心问题
 
 两个 ROS2 进程发送 5 MB 样本时，Fast DDS shared-memory transport 如何定位 segment、通知 reader 并管理 buffer？它和 intra-process/loaned message是什么关系？

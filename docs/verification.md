@@ -1,5 +1,30 @@
 # Verification Record
 
+## 2026-09-07：学习路线与任务编排入门
+
+以下是本次新增验证，不替代后面的 2026-09-02 Stage 01 Humble 验证记录。
+
+| 检查 | 环境与结果 | 验证边界 |
+|---|---|---|
+| FSM / BT C++17 构建 | 宿主机 aarch64、GCC 9.4.0、CMake 3.16.3，警告选项开启，构建成功 | 无 ROS、无线程、无真实设备 |
+| 概念实验 CTest | 4/4 通过：FSM 转移、BT 成功、低电量中断与重新开始、候选路线 | 不证明 ROS action 远端取消或框架兼容性 |
+| Stage 01 回归 | 4/4 CTest 与完整 smoke test 通过 | 沙箱内 UDS 等待超时后，经授权在沙箱外重跑成功 |
+| Lifecycle / ROS 基础官方命令 | 按 Humble 官方示例与源码核对 | 宿主机没有 Humble；检查的本地 arm64 Humble desktop 镜像缺少 `lifecycle` 包，未实际执行 Lifecycle 转换和新 ROS 基础流程 |
+
+新增实验的复现命令（仓库根目录）：
+
+```bash
+cmake -S labs/task_orchestration -B build/task_orchestration
+cmake --build build/task_orchestration --parallel 2
+cmake -E chdir build/task_orchestration ctest --output-on-failure
+```
+
+旧版 CTest 不支持 `--test-dir` 时可能输出 `No tests were found` 并返回成功；本次改用 `cmake -E chdir` 后确认实际执行四项测试。该提示不能作为通过证据。
+
+状态机和行为树只是概念程序；BehaviorTree.CPP 框架接入、自有 Lifecycle 包、ROS 取消与超时、V1/V2 综合系统仍待实现和验证。文档中的 Mermaid 图、架构示意与预期日志不是已完成集成的证明。
+
+---
+
 验证日期：2026-09-02
 
 ## Target environment

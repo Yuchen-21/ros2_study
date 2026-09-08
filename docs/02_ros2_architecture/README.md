@@ -1,6 +1,10 @@
 # Stage 02 — ROS2 分层与 publish 生命周期（规划）
 
-重要度：⭐⭐⭐　预计：8～12 小时　依赖：Stage 01
+重要度：⭐⭐⭐　预计：8～12 小时　依赖：Stage 01、[ROS 2 使用基础](../15_ros2_basics/README.md)
+
+本页属于[主线](../00_course_map.md)的通信进阶。“publish 生命周期”指一条消息的调用与传输过程；管理节点 configure/activate/deactivate 的 **Lifecycle** 另见[节点生命周期教程](../17_lifecycle/README.md)。
+
+> **白话预告**：一次 `publish()` 像把包裹依次交给几个部门。本阶段会弄清每个部门负责什么，以及函数返回时包裹实际走到了哪里。当前只有规划，初学者无需预习下面的实现名；陌生词见[术语表](../00_glossary.md)。
 
 ## 核心问题
 

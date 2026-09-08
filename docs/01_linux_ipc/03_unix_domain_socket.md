@@ -1,10 +1,20 @@
-# Chapter 3 — Unix Domain Socket：本机有地址的 IPC
+# Chapter 3 — Unix Domain Socket：本机有地址的进程通信
 
 重要度：⭐⭐
 
+> **初学者读法**：先读“0. 先记三件事”“2. 生动例子”和“6. 动手实验”。这一章是从 pipe 过渡到网络 socket 的桥梁；第一遍不需要掌握 `sockaddr_un`、`SCM_RIGHTS` 等接口细节。陌生词见[术语表](../00_glossary.md)。
+
+## 0. 这一章先记三件事
+
+1. Unix Domain Socket（简称 UDS）让**同一台机器上、彼此独立启动**的进程通过一个本机地址找到对方。
+2. 它使用 socket 接口，但数据不经过 IP 路由和物理网卡。
+3. 本实验采用数据报模式：每次发送的一条数据仍是一条完整记录，但接收队列容量有限，所以不能理解成“永远不丢”。
+
+和 pipe 的关键区别是：pipe 常由父进程把通道交给子进程；UDS 有地址，两个没有亲缘关系的进程也能会合。
+
 ## 1. 为什么需要 UDS
 
-匿名 pipe 适合有亲缘关系且能继承 fd 的进程。独立启动的 daemon/client 需要可定位的本机端点、双向通信和 socket API；Unix Domain Socket（AF_UNIX/AF_LOCAL）提供这些能力，但不进入 IP 路由。
+匿名 pipe 适合有父子关系、能够继承 fd 的进程。独立启动的后台服务（daemon）和客户端（client）则需要一个双方都知道的本机地址。Unix Domain Socket（AF_UNIX/AF_LOCAL）提供了这种能力，但不会把数据送入 IP 网络。
 
 ## 2. 生动例子
 
@@ -141,3 +151,7 @@ strace -ff -ttT \
 阅读 `man 7 unix`、`man 2 socket`、`man 2 bind`、`man 2 sendto`、`man 2 recvfrom`。扩展阅读 `SCM_RIGHTS` 前，先画清 fd 与 fd 所引用内核对象的区别。
 
 > UDS 是本机 socket IPC：有地址、有内核队列、可选择 stream/datagram 语义，但不提供 DDS 的发现、类型、QoS 和分布式数据模型。
+
+第一遍可以把它说成：
+
+> UDS 像一间只有本楼能使用、带房间号的收发室。它解决“本机两个独立程序怎样找到并传数据”，但没有替 ROS 2 解决跨机器、自动发现和通信策略等更大问题。

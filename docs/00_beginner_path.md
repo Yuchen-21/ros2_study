@@ -8,6 +8,8 @@
 
 ## 1. 先知道这个仓库在学什么
 
+整个仓库现在按[统一学习路线](00_course_map.md)前进：**IPC 第一遍 → ROS 2 使用基础 → 回调/QoS 基础 → 状态机 → Lifecycle → 行为树 → 配送闭环 → 通信深入**。本页只负责第一步，不需要在开始 ROS 2 之前啃完所有 Linux 底层细节。
+
 机器人程序通常不会把所有工作都塞在一个文件里。相机、定位、规划、控制可能分别运行，它们必须互相传数据。
 
 先把整个课程想成下面这件事：
@@ -147,7 +149,18 @@ build/stage1/pipe_process_a
 
 [完整实验手册](01_linux_ipc/07_lab_manual.md)是操作时查阅的说明书，不是必须从第一行连续读到最后一行的教材。第一次只做 Lab 1～3；学到对应章节时再做后面的实验。
 
-## 6. 后续阶段其实在问什么
+## 6. IPC 第一遍之后，先学使用与任务组织
+
+完成前面的 IPC 第一遍后，先去 [ROS 2 使用基础](15_ros2_basics/README.md)，理解 topic/service/action、回调和 QoS。接下来用同一个配送机器人依次学：
+
+| 内容 | 白话问题 | 入口 |
+|---|---|---|
+| 状态机 | 这一单进行到哪一步？遇到取消和故障能转到哪里？ | [FSM 教程与 C++ 实验](16_state_machine/README.md) |
+| Lifecycle | 店门开了，设备也准备好了吗？何时允许它工作？ | [节点生命周期实验](17_lifecycle/README.md) |
+| 行为树 | 每轮先检查什么？主方案失败后试哪个候选？ | [BT 教程与 C++ 实验](18_behavior_tree/README.md) |
+| 配送闭环 | 怎样把通信、任务状态、节点状态与策略接起来？ | [V1 设计与验收](task_orchestration_capstone.md) |
+
+下面是**完成小闭环以后**回头深入的通信专题索引，编号不代表你现在必须连续阅读它们。
 
 后续标题看起来术语很多，但每一阶段都能还原成一个生活化问题。现在只看右栏即可：
 
@@ -205,4 +218,4 @@ build/stage1/pipe_process_a
 - [ ] 知道 pipe/socket 是“搬运数据”，shared memory 是“共同看到一块区域”；
 - [ ] 遇到陌生术语时知道先查表、做标记或暂时跳过。
 
-准备好后，从[Stage 01 导读](01_linux_ipc/README.md)继续。课程的完整远景可以以后再看[课程地图](00_course_map.md)和[通信全景图](ros2_communication_big_picture.md)。
+准备好后，从[Stage 01 导读](01_linux_ipc/README.md)继续；如果已经完成 IPC 第一遍，就去 [ROS 2 使用基础](15_ros2_basics/README.md)。[课程地图](00_course_map.md)会告诉你每一步何时可以过关；[通信全景图](ros2_communication_big_picture.md)留到深入阶段逐步补全。
